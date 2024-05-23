@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 13:57:37 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/23 11:00:12 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/23 12:34:35 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,5 +134,5 @@ int	main(int argc, char **argv)
 		usleep(100);
 	}
 	clear_threads(data);
-	return (0);
+	exit(0);
 }

@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 11:14:27 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/23 11:27:15 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/23 13:26:18 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,19 +51,19 @@ int	calc_last_time(t_th_data *thread)
 	|| (thread->t_last_meal.tv_sec != 0 \
 	&& diff_tv(&time, &thread->t_last_meal) > thread->t_die * 1000))
 	{
-		p_die(thread);
 		pthread_mutex_lock(thread->c_lock);
 		*thread->is_dead = 1;
 		pthread_mutex_unlock(thread->c_lock);
+		p_die(thread);
 		return (0);
 	}
 	if (thread->max_size == 1)
 	{
 		spend_time(thread->t_die);
-		p_die(thread);
 		pthread_mutex_lock(thread->c_lock);
 		*thread->is_dead = 1;
 		pthread_mutex_unlock(thread->c_lock);
+		p_die(thread);
 		return (0);
 	}
 	return (1);
