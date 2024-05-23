@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 17:56:02 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/20 17:58:28 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/22 21:26:56 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,12 @@ static int	ft_isspace(char c)
 		return (0);
 }
 
-long long	ft_atoi_ovf(char *str)
+int	ft_atoi_ovf(char *str)
 {
-	long long	prev;
-	long long	res;
-	long long	sign;
-	int			i;
+	int	prev;
+	int	res;
+	int	sign;
+	int	i;
 
 	sign = 1;
 	res = 0;
@@ -50,8 +50,23 @@ long long	ft_atoi_ovf(char *str)
 	return (res);
 }
 
-void	ft_exit_error(char *str)
+int	check_stop(t_th_data *th)
 {
-	printf("philosophers: %s\n", str);
-	exit(1);
+	pthread_mutex_lock(th->c_lock);
+	if (*th->is_dead)
+	{
+		pthread_mutex_unlock(th->c_lock);
+		return (0);
+	}
+	pthread_mutex_unlock(th->c_lock);
+	return (1);
+}
+
+void	clear_threads(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->max_size)
+		pthread_join(data->threads[i++], NULL);
 }

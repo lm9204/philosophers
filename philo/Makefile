@@ -1,6 +1,7 @@
 CC = cc
-FLAGS = -Wall -Wextra -Werror -MMD -MP -g3
-SRCS = philo.c philo_utils.c
+FLAGS = -Wall -Wextra -Werror -MMD -MP
+SRCS = philo.c philo_utils.c philo_routine.c philo_time.c philo_print.c \
+		philo_error.c
 OBJS = $(SRCS:.c=.o)
 NAME = philo
 
