@@ -1,36 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.c                                            :+:      :+:    :+:   */
+/*   philo_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 13:57:37 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 15:06:58 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/28 14:32:47 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "philo_bonus.h"
 
-static int	check_eat_count(t_data *data, int f_eat_arg)
+static void	init_start_time(struct timeval *t_start, int milliseconds)
 {
-	int	i;
+	int	microseconds;
 
-	i = 0;
-	if (f_eat_arg <= 5)
-		return (1);
-	while (i < data->max_size)
+	microseconds = milliseconds * 1000 + 50000;
+	t_start->tv_usec += microseconds;
+	while (t_start->tv_usec >= 1000000)
 	{
-		pthread_mutex_lock(&data->datas[i]->c_eat);
-		if (data->datas[i]->c_must_eat != 0)
-		{
-			pthread_mutex_unlock(&data->datas[i]->c_eat);
-			return (1);
-		}
-		pthread_mutex_unlock(&data->datas[i]->c_eat);
-		i++;
+		t_start->tv_sec += 1;
+		t_start->tv_usec -= 1000000;
 	}
-	return (0);
 }
 
 static t_data	*init_struct(char **argv, int argc)
@@ -40,17 +32,23 @@ static t_data	*init_struct(char **argv, int argc)
 	data = malloc(sizeof(t_data));
 	if (data == NULL)
 		return (NULL);
-	data->threads = malloc(sizeof(pthread_t) * ft_atoi_ovf(argv[1]));
-	data->m_forks = malloc(sizeof(pthread_mutex_t) * ft_atoi_ovf(argv[1]));
-	data->forks = malloc(sizeof(int) * ft_atoi_ovf(argv[1]));
-	data->datas = malloc(sizeof(t_th_data *) * (ft_atoi_ovf(argv[1])));
-	if (!data->threads || !data->m_forks || !data->forks || !data->datas)
+	data->max_size = ft_atoi_ovf(argv[1]);
+	init_sem(data);
+	if (!data->forks || !data->s_dead || !data->s_print || !data->pids \
+	|| !data->s_sync || !data->s_t_last || !data->s_done)
 		return (NULL);
 	gettimeofday(&data->t_start, NULL);
-	data->is_dead = 0;
-	data->print = 0;
-	data->max_size = ft_atoi_ovf(argv[1]);
-	init_mutex(data, argv, argc);
+	init_start_time(&data->t_start, data->max_size);
+	data->t_die = ft_atoi_ovf(argv[2]);
+	data->t_eat = ft_atoi_ovf(argv[3]);
+	data->t_sleep = ft_atoi_ovf(argv[4]);
+	data->eat_count = 0;
+	data->f_eatcount = 0;
+	if (argc == 6)
+	{
+		data->eat_count = ft_atoi_ovf(argv[5]);
+		data->f_eatcount = 1;
+	}
 	return (data);
 }
 
@@ -86,19 +84,16 @@ int	main(int argc, char **argv)
 		ft_malloc_error();
 	i = -1;
 	while (++i < data->max_size)
-		pthread_create(&data->threads[i], NULL, \
-		routine, (void *)data->datas[i]);
-	while (check_eat_count(data, argc))
+		sem_wait(data->s_done);
+	i = -1;
+	while (++i < data->max_size)
 	{
-		pthread_mutex_lock(&data->c_lock);
-		if (data->is_dead)
-		{
-			pthread_mutex_unlock(&data->c_lock);
-			break ;
-		}
-		pthread_mutex_unlock(&data->c_lock);
-		usleep(200);
+		data->pids[i] = fork();
+		if (data->pids[i] == 0)
+			philo_create(data, i);
 	}
-	clear_threads(data);
+	start_sync(data);
+	wait_philo(data);
+	clear_philo(data);
 	exit(0);
 }

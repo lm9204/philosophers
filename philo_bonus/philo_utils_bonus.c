@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo_utils.c                                      :+:      :+:    :+:   */
+/*   philo_utils_bonus.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 17:56:02 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 14:56:06 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/28 12:04:23 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "philo_bonus.h"
 
 static int	ft_isspace(char c)
 {
@@ -52,32 +52,10 @@ int	ft_atoi_ovf(char *str)
 
 int	check_stop(t_th_data *th)
 {
-	pthread_mutex_lock(th->c_lock);
-	if (*th->is_dead)
-	{
-		pthread_mutex_unlock(th->c_lock);
-		return (0);
-	}
-	pthread_mutex_unlock(th->c_lock);
-	return (1);
-}
+	int	ret;
 
-void	clear_threads(t_data *data)
-{
-	int	i;
-
-	i = 0;
-	while (i < data->max_size)
-		pthread_join(data->threads[i++], NULL);
-}
-
-void	check_printable(t_th_data *thread)
-{
-	while (1)
-	{
-		pthread_mutex_lock(thread->c_print);
-		if (*thread->print == 0)
-			return ;
-		pthread_mutex_unlock(thread->c_print);
-	}
+	sem_wait(th->s_dead);
+	ret = th->is_dead;
+	sem_post(th->s_dead);
+	return (!ret);
 }

@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 22:16:44 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/23 14:08:04 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/26 13:35:22 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,9 +89,9 @@ void	*routine(void *arg)
 
 	ptr = (t_th_data *)arg;
 	p_think(ptr);
-	if (ptr->index % 2 == 0)
+	if (ptr->max_size > 2 && ptr->index % 2 == 0)
 		spend_time(ptr->t_eat);
-	if (ptr->max_size % 2 == 1 && ptr->index == 0)
+	if (ptr->max_size > 2 && ptr->max_size % 2 == 1 && ptr->index == 0)
 		spend_time(ptr->t_eat);
 	c_loop = 1;
 	if (ptr->c_must_eat > 0)
@@ -102,7 +102,7 @@ void	*routine(void *arg)
 			break ;
 		p_sleep(ptr);
 		spend_time(ptr->t_sleep);
-		if (!calc_last_time(ptr) || !check_stop(ptr))
+		if (!check_stop(ptr) || !calc_last_time(ptr))
 			break ;
 		p_think(ptr);
 	}
