@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/27 22:25:51 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 12:04:19 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/18 14:58:45 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,12 @@ void	clear_philo(t_data *data)
 	sem_close(data->s_dead);
 	sem_close(data->s_print);
 	sem_close(data->s_sync);
+	sem_unlink("s_fork");
+	sem_unlink("s_dead");
+	sem_unlink("s_print");
+	sem_unlink("s_sync");
+	sem_unlink("c_t_last_meal");
+	sem_unlink("s_done");
 }
 
 void	start_sync(t_data *data)

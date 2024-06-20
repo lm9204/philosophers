@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 13:57:31 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 12:04:05 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/18 14:58:10 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ int			drop_forks(t_th_data *thread);
 long long	diff_tv(struct timeval *tv1, struct timeval *tv2);
 long long	t_calc(struct timeval *tv1, struct timeval *tv2);
 void		init_time(struct timeval *tv, struct timeval *val);
-void		spend_time(long long time);
+void		spend_time(t_th_data *thread, long long time);
 int			calc_last_time(t_th_data *thread);
 
 void		p_eat(t_th_data *thread);

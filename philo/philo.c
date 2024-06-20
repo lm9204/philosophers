@@ -6,30 +6,34 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 13:57:37 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 15:06:58 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/17 20:31:55 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static int	check_eat_count(t_data *data, int f_eat_arg)
+static int	check_eat_count(t_data *data)
 {
 	int	i;
 
 	i = 0;
-	if (f_eat_arg <= 5)
+	if (!data->f_eatcount)
 		return (1);
 	while (i < data->max_size)
 	{
-		pthread_mutex_lock(&data->datas[i]->c_eat);
+		pthread_mutex_lock(&data->datas[i]->m_eat);
 		if (data->datas[i]->c_must_eat != 0)
 		{
-			pthread_mutex_unlock(&data->datas[i]->c_eat);
+			pthread_mutex_unlock(&data->datas[i]->m_eat);
 			return (1);
 		}
-		pthread_mutex_unlock(&data->datas[i]->c_eat);
+		pthread_mutex_unlock(&data->datas[i]->m_eat);
 		i++;
 	}
+	pthread_mutex_lock(&data->m_dead);
+	data->f_eatcount = 0;
+	data->is_dead = 1;
+	pthread_mutex_unlock(&data->m_dead);
 	return (0);
 }
 
@@ -49,6 +53,9 @@ static t_data	*init_struct(char **argv, int argc)
 	gettimeofday(&data->t_start, NULL);
 	data->is_dead = 0;
 	data->print = 0;
+	data->f_eatcount = 0;
+	if (argc > 5)
+		data->f_eatcount = 1;
 	data->max_size = ft_atoi_ovf(argv[1]);
 	init_mutex(data, argv, argc);
 	return (data);
@@ -88,16 +95,15 @@ int	main(int argc, char **argv)
 	while (++i < data->max_size)
 		pthread_create(&data->threads[i], NULL, \
 		routine, (void *)data->datas[i]);
-	while (check_eat_count(data, argc))
+	while (check_eat_count(data))
 	{
-		pthread_mutex_lock(&data->c_lock);
+		pthread_mutex_lock(&data->m_dead);
 		if (data->is_dead)
 		{
-			pthread_mutex_unlock(&data->c_lock);
+			pthread_mutex_unlock(&data->m_dead);
 			break ;
 		}
-		pthread_mutex_unlock(&data->c_lock);
-		usleep(200);
+		pthread_mutex_unlock(&data->m_dead);
 	}
 	clear_threads(data);
 	exit(0);

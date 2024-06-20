@@ -6,22 +6,36 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 11:14:27 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/23 13:26:18 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/17 21:52:31 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	spend_time(long long time)
+void	spend_time(t_th_data *thread, long long time)
 {
 	struct timeval	start_tv;
 	struct timeval	cur_tv;
 
 	gettimeofday(&start_tv, NULL);
+	if (thread->t_last_meal.tv_sec == 0 && diff_tv(&start_tv, &thread->t_start) \
+	+ time * 1000 > thread->t_die * 1000)
+	{
+		time = thread->t_die \
+		- diff_tv(&start_tv, &thread->t_start) / 1000;
+	}
+	if (thread->t_last_meal.tv_sec != 0 && \
+	diff_tv(&start_tv, &thread->t_last_meal) + time * 1000 \
+	> thread->t_die * 1000)
+	{
+		time = thread->t_die \
+		- diff_tv(&start_tv, &thread->t_last_meal) / 1000;
+	}
+	usleep(time * 1000 * 0.7);
 	gettimeofday(&cur_tv, NULL);
 	while (time * 1000 >= diff_tv(&cur_tv, &start_tv))
 	{
-		usleep(100);
+		usleep(1000);
 		gettimeofday(&cur_tv, NULL);
 	}
 }
@@ -51,18 +65,9 @@ int	calc_last_time(t_th_data *thread)
 	|| (thread->t_last_meal.tv_sec != 0 \
 	&& diff_tv(&time, &thread->t_last_meal) > thread->t_die * 1000))
 	{
-		pthread_mutex_lock(thread->c_lock);
+		pthread_mutex_lock(thread->m_dead);
 		*thread->is_dead = 1;
-		pthread_mutex_unlock(thread->c_lock);
-		p_die(thread);
-		return (0);
-	}
-	if (thread->max_size == 1)
-	{
-		spend_time(thread->t_die);
-		pthread_mutex_lock(thread->c_lock);
-		*thread->is_dead = 1;
-		pthread_mutex_unlock(thread->c_lock);
+		pthread_mutex_unlock(thread->m_dead);
 		p_die(thread);
 		return (0);
 	}

@@ -6,23 +6,37 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 11:14:27 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 12:04:21 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/18 14:57:23 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_bonus.h"
 
-void	spend_time(long long time)
+void	spend_time(t_th_data *thread, long long time)
 {
 	struct timeval	start_tv;
 	struct timeval	cur_tv;
 
+	sem_wait(thread->s_t_last);
 	gettimeofday(&start_tv, NULL);
+	if (thread->t_last_meal.tv_sec == 0 && diff_tv(&start_tv, &thread->t_start) \
+	+ time > thread->t_die * 1000)
+	{
+		time = thread->t_die * 1000 \
+		- diff_tv(&start_tv, &thread->t_start);
+	}
+	if (diff_tv(&start_tv, &thread->t_last_meal) + time > thread->t_die * 1000 \
+	&& thread->t_last_meal.tv_sec != 0)
+	{
+		time = thread->t_die * 1000 \
+		- diff_tv(&start_tv, &thread->t_last_meal);
+	}
+	sem_post(thread->s_t_last);
 	usleep(time / 3 * 2);
 	gettimeofday(&cur_tv, NULL);
-	while (time * 1000 >= diff_tv(&cur_tv, &start_tv))
+	while (time >= diff_tv(&cur_tv, &start_tv))
 	{
-		usleep(1000);
+		usleep(500);
 		gettimeofday(&cur_tv, NULL);
 	}
 }
@@ -48,8 +62,8 @@ int	calc_last_time(t_th_data *thread)
 	int				ret;
 
 	ret = 1;
-	gettimeofday(&time, NULL);
 	sem_wait(thread->s_t_last);
+	gettimeofday(&time, NULL);
 	if ((thread->t_last_meal.tv_sec == 0 \
 	&& diff_tv(&time, &thread->t_start) > thread->t_die * 1000) \
 	|| (thread->t_last_meal.tv_sec != 0 \

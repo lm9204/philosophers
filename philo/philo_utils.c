@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 17:56:02 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 14:56:06 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/18 12:52:55 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,13 @@ int	ft_atoi_ovf(char *str)
 
 int	check_stop(t_th_data *th)
 {
-	pthread_mutex_lock(th->c_lock);
+	pthread_mutex_lock(th->m_dead);
 	if (*th->is_dead)
 	{
-		pthread_mutex_unlock(th->c_lock);
+		pthread_mutex_unlock(th->m_dead);
 		return (0);
 	}
-	pthread_mutex_unlock(th->c_lock);
+	pthread_mutex_unlock(th->m_dead);
 	return (1);
 }
 
@@ -71,13 +71,21 @@ void	clear_threads(t_data *data)
 		pthread_join(data->threads[i++], NULL);
 }
 
-void	check_printable(t_th_data *thread)
+int	check_printable(t_th_data *thread)
 {
 	while (1)
 	{
-		pthread_mutex_lock(thread->c_print);
+		pthread_mutex_lock(thread->m_print);
 		if (*thread->print == 0)
-			return ;
-		pthread_mutex_unlock(thread->c_print);
+		{
+			*thread->print = 1;
+			pthread_mutex_unlock(thread->m_print);
+			break ;
+		}
+		pthread_mutex_unlock(thread->m_print);
+		if (!check_stop(thread))
+			return (0);
+		usleep(100);
 	}
+	return (1);
 }

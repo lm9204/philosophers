@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:04:45 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 15:07:31 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/05/31 10:45:17 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,11 @@ static t_th_data	*init_thread(t_data *data, char **args, int argc, int index)
 	ptr->m_right = &data->m_forks[(index + 1) % data->max_size];
 	ptr->left = &data->forks[index];
 	ptr->right = &data->forks[(index + 1) % data->max_size];
+	ptr->m_dead = &data->m_dead;
+	ptr->m_print = &data->m_print;
 	ptr->print = &data->print;
-	ptr->c_lock = &data->c_lock;
-	ptr->c_print = &data->c_print;
 	ptr->c_must_eat = 0;
-	pthread_mutex_init(&ptr->c_eat, NULL);
+	pthread_mutex_init(&ptr->m_eat, NULL);
 	ptr->is_dead = &data->is_dead;
 	ptr->max_size = data->max_size;
 	if (argc > 5)
@@ -46,8 +46,8 @@ void	init_mutex(t_data *data, char **argv, int argc)
 	int	i;
 
 	i = 0;
-	pthread_mutex_init(&data->c_lock, NULL);
-	pthread_mutex_init(&data->c_print, NULL);
+	pthread_mutex_init(&data->m_dead, NULL);
+	pthread_mutex_init(&data->m_print, NULL);
 	while (i < data->max_size)
 	{
 		pthread_mutex_init(&data->m_forks[i], NULL);

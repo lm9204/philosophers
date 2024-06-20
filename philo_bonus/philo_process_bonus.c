@@ -6,7 +6,7 @@
 /*   By: yeondcho <yeondcho@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/25 14:27:49 by yeondcho          #+#    #+#             */
-/*   Updated: 2024/05/28 12:04:12 by yeondcho         ###   ########.fr       */
+/*   Updated: 2024/06/18 14:58:20 by yeondcho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,8 @@ static t_th_data	*init_thread(t_data *data, int index)
 	return (ptr);
 }
 
-static int	still_reachable(t_th_data *thread, int f_eat_arg)
+static int	still_reachable(t_th_data *thread, t_data *data)
 {
-	if (f_eat_arg == 0)
-		return (1);
 	sem_wait(thread->s_dead);
 	if (thread->is_dead == 1)
 	{
@@ -48,14 +46,16 @@ static int	still_reachable(t_th_data *thread, int f_eat_arg)
 		return (0);
 	}
 	sem_post(thread->s_dead);
-	sem_wait(thread->s_count);
-	if (thread->eat_count > 0)
-	{
-		sem_post(thread->s_count);
+	if (data->f_eatcount == 0)
 		return (1);
+	sem_wait(thread->s_count);
+	if (thread->eat_count <= 0)
+	{
+		data->f_eatcount = 0;
+		sem_post(data->s_done);
 	}
 	sem_post(thread->s_count);
-	return (0);
+	return (1);
 }
 
 static int	time_monitoring(t_th_data *thread, t_data *data)
@@ -64,23 +64,22 @@ static int	time_monitoring(t_th_data *thread, t_data *data)
 	int				i;
 
 	i = -1;
-	gettimeofday(&time, NULL);
 	sem_wait(thread->s_t_last);
+	gettimeofday(&time, NULL);
 	if ((thread->t_last_meal.tv_sec == 0 \
 	&& diff_tv(&time, &thread->t_start) > thread->t_die * 1000) \
 	|| (thread->t_last_meal.tv_sec != 0 \
 	&& diff_tv(&time, &thread->t_last_meal) > thread->t_die * 1000))
 	{
-		sem_wait(thread->s_print);
+		sem_post(thread->s_t_last);
 		sem_wait(thread->s_dead);
-		gettimeofday(&time, NULL);
 		thread->is_dead = 1;
+		sem_post(thread->s_dead);
+		sem_wait(thread->s_print);
 		printf("%lld %d died\n", \
 		t_calc(&time, &thread->t_start), thread->index + 1);
 		while (++i < thread->max_size)
 			sem_post(data->s_done);
-		sem_post(thread->s_dead);
-		sem_post(thread->s_t_last);
 		return (0);
 	}
 	return (1);
@@ -94,13 +93,10 @@ void	philo_create(t_data *data, int index)
 	th_data = init_thread(data, index);
 	if (!th_data)
 		ft_malloc_error();
-	sem_wait(data->s_sync);
 	if (pthread_create(&thread, NULL, routine, (void *)th_data) != 0)
 		exit(1);
-	while (still_reachable(th_data, data->f_eatcount))
+	while (still_reachable(th_data, data))
 	{
-		if (!check_stop(th_data))
-			break ;
 		if (!time_monitoring(th_data, data))
 			break ;
 		sem_post(th_data->s_t_last);
